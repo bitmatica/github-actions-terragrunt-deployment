@@ -1,0 +1,83 @@
+name: 'Terragrunt Continuous Delivery'
+description: 'Deploy'
+inputs:
+  ssh-private-key:
+    description: 'SSH private key used to authenticate to other private Github repos to fetch Terraform module code'
+    required: true
+  aws-access-key-id:
+    description: 'AWS Access Key ID'
+    required: true
+  aws-secret-access-key:
+    description: 'AWS Secret Access Key'
+    required: true
+  aws-region:
+    description: 'AWS Region'
+    required: true
+  tf-working-dir:
+    description: 'Terraform working directory'
+    required: true
+  tf-version:
+    description: 'Terraform version'
+    required: false
+    default: '0.13.3'
+  tg-version:
+    description: 'Terragrunt version'
+    required: false
+    default: 'latest'
+env:
+  tf_version: ${{ inputs.tf-version }}
+  tg_version: ${{ inputs.tg-version }}
+  tf_working_dir: ${{ inputs.tf-working-dir }}
+runs:
+  using: "composite"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ inputs.aws-access-key-id }}
+          aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
+          aws-region: ${{ inputs.aws-region }}
+      - name: 'Terragrunt Init '
+        uses: the-commons-project/terragrunt-github-actions@master
+        with:
+          tf_actions_version: ${{ env.tf_version }}
+          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_subcommand: 'init'
+          tf_actions_working_dir: ${{ env.tf_working_dir }}
+        env:
+          TF_LOG: 'INFO'
+          GIT_SSH_COMMAND: "echo '${{ inputs.ssh-private-key }}' > id_rsa
+            && echo $(ssh-keyscan -t rsa github.com) > known_hosts
+            && chmod 400 id_rsa known_hosts
+            && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
+      - name: 'Terragrunt Plan'
+        uses: the-commons-project/terragrunt-github-actions@master
+        with:
+          tf_actions_version: ${{ env.tf_version }}
+          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_subcommand: 'plan'
+          tf_actions_working_dir: ${{ env.tf_working_dir }}
+        env:
+          TF_LOG: 'INFO'
+          GIT_SSH_COMMAND: "echo '${{ inputs.ssh-private-key }}' > id_rsa
+            && echo $(ssh-keyscan -t rsa github.com) > known_hosts
+            && chmod 400 id_rsa known_hosts
+            && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
+      - name: 'Terragrunt Apply'
+        uses: the-commons-project/terragrunt-github-actions@master
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          tf_actions_version: ${{ env.tf_version }}
+          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_subcommand: 'apply'
+          tf_actions_working_dir: ${{ env.tf_working_dir }}
+        env:
+          TF_LOG: 'INFO'
+          GIT_SSH_COMMAND: "echo '${{ inputs.ssh-private-key }}' > id_rsa
+            && echo $(ssh-keyscan -t rsa github.com) > known_hosts
+            && chmod 400 id_rsa known_hosts
+            && ssh -i ./id_rsa -o UserKnownHostsFile=./known_hosts"
