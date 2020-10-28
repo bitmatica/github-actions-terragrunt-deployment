@@ -25,8 +25,6 @@ inputs:
     required: false
     default: 'latest'
 env:
-  tf_version: ${{ inputs.tf-version }}
-  tg_version: ${{ inputs.tg-version }}
   tf_working_dir: ${{ inputs.tf-working-dir }}
 runs:
   using: "composite"
@@ -44,10 +42,10 @@ runs:
       - name: 'Terragrunt Init '
         uses: the-commons-project/terragrunt-github-actions@master
         with:
-          tf_actions_version: ${{ env.tf_version }}
-          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_version: ${{ inputs.tf-version }}
+          tg_actions_version: ${{ inputs.tg-version }}
           tf_actions_subcommand: 'init'
-          tf_actions_working_dir: ${{ env.tf_working_dir }}
+          tf_actions_working_dir: ${{ inputs.tf-working-dir }}
         env:
           TF_LOG: 'INFO'
           GIT_SSH_COMMAND: "echo '${{ inputs.ssh-private-key }}' > id_rsa
@@ -57,10 +55,10 @@ runs:
       - name: 'Terragrunt Plan'
         uses: the-commons-project/terragrunt-github-actions@master
         with:
-          tf_actions_version: ${{ env.tf_version }}
-          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_version: ${{ inputs.tf-version }}
+          tg_actions_version: ${{ inputs.tg-version }}
           tf_actions_subcommand: 'plan'
-          tf_actions_working_dir: ${{ env.tf_working_dir }}
+          tf_actions_working_dir: ${{ inputs.tf-working-dir }}
         env:
           TF_LOG: 'INFO'
           GIT_SSH_COMMAND: "echo '${{ inputs.ssh-private-key }}' > id_rsa
@@ -71,10 +69,10 @@ runs:
         uses: the-commons-project/terragrunt-github-actions@master
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         with:
-          tf_actions_version: ${{ env.tf_version }}
-          tg_actions_version: ${{ env.tg_version }}
+          tf_actions_version: ${{ inputs.tf-version }}
+          tg_actions_version: ${{ inputs.tg-version }}
           tf_actions_subcommand: 'apply'
-          tf_actions_working_dir: ${{ env.tf_working_dir }}
+          tf_actions_working_dir: ${{ inputs.tf-working-dir }}
         env:
           TF_LOG: 'INFO'
           GIT_SSH_COMMAND: "echo '${{ inputs.ssh-private-key }}' > id_rsa
