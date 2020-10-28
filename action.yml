@@ -24,8 +24,6 @@ inputs:
     description: 'Terragrunt version'
     required: false
     default: 'latest'
-env:
-  tf_working_dir: ${{ inputs.tf-working-dir }}
 runs:
   using: "composite"
     steps:
